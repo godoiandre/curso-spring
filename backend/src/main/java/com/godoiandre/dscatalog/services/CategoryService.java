@@ -5,12 +5,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.godoiandre.dscatalog.dto.CategoryDTO;
 import com.godoiandre.dscatalog.entities.Category;
 import com.godoiandre.dscatalog.repositories.CategoryRepository;
+import com.godoiandre.dscatalog.services.exceptions.DataBaseException;
 import com.godoiandre.dscatalog.services.exceptions.ResourceNotFindException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -50,6 +51,19 @@ public class CategoryService {
         }
         catch(EntityNotFoundException e) {
             throw new ResourceNotFindException("Id not found" + id);
+        }   
+    }
+
+    public void delete(Long id) {
+        if (!repository.existsById(id)) { // Verifica se o ID existe antes de deletar
+            throw new ResourceNotFindException("Id not found: " + id);
+        }
+    
+        try {
+            repository.deleteById(id);
+        }
+        catch (DataIntegrityViolationException e) {
+            throw new DataBaseException("Integrity violation");
         }   
     }
 }
